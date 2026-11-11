@@ -26,12 +26,6 @@ struct SettingsView: View {
     @AppStorage("hapticFeedback")
     private var hapticFeedback = true
 
-    // MARK: - Disclosure States
-
-    @State private var showFeatures = false
-    @State private var showFormats = false
-    @State private var showTechnicalInfo = false
-
     // MARK: - Bundle Information
 
     private var appVersion: String {
@@ -138,10 +132,8 @@ struct SettingsView: View {
                 )
             }
 
-            DisclosureGroup(
-                isExpanded: $showFeatures
-            ) {
-                VStack(alignment: .leading, spacing: 14) {
+            NavigationLink {
+                List {
                     featureRow(
                         "Zeichnen",
                         symbol: "pencil.tip",
@@ -184,7 +176,7 @@ struct SettingsView: View {
                             "Teile deine fertigen Zeichnungen als Bild."
                     )
                 }
-                .padding(.vertical, 8)
+                .navigationTitle("Übersicht")
             } label: {
                 Label(
                     "Was kann Mirror Shade?",
@@ -192,10 +184,8 @@ struct SettingsView: View {
                 )
             }
 
-            DisclosureGroup(
-                isExpanded: $showFormats
-            ) {
-                VStack(alignment: .leading, spacing: 12) {
+            NavigationLink {
+                List {
                     formatRow(
                         "App Design",
                         description: "App-Icons und Screenshots"
@@ -245,28 +235,29 @@ struct SettingsView: View {
                 value: buildNumber
             )
 
-            DisclosureGroup(
-                isExpanded: $showTechnicalInfo
-            ) {
-                LabeledContent(
-                    "Bundle Identifier",
-                    value: bundleIdentifier
-                )
+            NavigationLink {
+                Form {
+                    LabeledContent(
+                        "Bundle Identifier",
+                        value: bundleIdentifier
+                    )
 
-                LabeledContent(
-                    "Oberfläche",
-                    value: "SwiftUI"
-                )
+                    LabeledContent(
+                        "Oberfläche",
+                        value: "SwiftUI"
+                    )
 
-                LabeledContent(
-                    "Zeichnen",
-                    value: "PencilKit"
-                )
+                    LabeledContent(
+                        "Zeichnen",
+                        value: "PencilKit"
+                    )
 
-                LabeledContent(
-                    "Datenspeicherung",
-                    value: "SwiftData"
-                )
+                    LabeledContent(
+                        "Datenspeicherung",
+                        value: "SwiftData"
+                    )
+                }
+                .navigationTitle("Technische Details")
             } label: {
                 Label(
                     "Technische Details",
@@ -279,9 +270,9 @@ struct SettingsView: View {
     // MARK: - Components
 
     private func featureRow(
-        _ title: String,
+        _ title: LocalizedStringResource,
         symbol: String,
-        description: String
+        description: LocalizedStringResource
     ) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: symbol)
@@ -301,8 +292,8 @@ struct SettingsView: View {
     }
 
     private func formatRow(
-        _ title: String,
-        description: String
+        _ title: LocalizedStringResource,
+        description: LocalizedStringResource
     ) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
@@ -324,7 +315,7 @@ enum AppAppearance: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    var title: LocalizedStringResource {
         switch self {
         case .system: "System"
         case .light: "Hell"
@@ -358,7 +349,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
+    var title: LocalizedStringResource {
         switch self {
         case .system: "System"
         case .german: "Deutsch"

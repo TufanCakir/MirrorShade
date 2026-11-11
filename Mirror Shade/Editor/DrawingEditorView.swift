@@ -15,7 +15,8 @@ struct DrawingEditorView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var project: DrawingProject?
-    @State private var projectName = "Neue Zeichnung"
+    @State private var projectName = ""
+    @Environment(\.locale) private var locale
     @State private var showSaveError = false
     @State private var saveErrorMessage = ""
     @State private var didLoadProject = false
@@ -25,23 +26,16 @@ struct DrawingEditorView: View {
     @State private var selectedToolID = "pen"
     @State private var selectedColor: Color = .black
     @State private var lineWidth: Double = 4
-    @State private var showBackgroundPicker = false
-
-    @State private var controlsHeight: CGFloat = 240
-    @State private var dragStartHeight: CGFloat?
+    @State private var showCanvasSettings = false
     @State private var showClearConfirmation = false
+    @AppStorage("showCanvasGrid") private var showCanvasGrid = false
+    @AppStorage("showTransparencyGrid") private var showTransparencyGrid = true
+    @AppStorage("hapticFeedback") private var hapticFeedback = true
 
-    @State private var showDrawingTools = true
-    @State private var showBrushTools = false
-    @State private var showFantasyTools = false
-    @State private var showGradientTools = false
-    @State private var showOtherTools = false
-    @State private var showColorControls = false
-
-    private let minimumControlsHeight: CGFloat = 110
-    private let minimumCanvasHeight: CGFloat = 130
-
-    private let tools = DrawingTool.load()
+    // Only expose tools whose behavior is implemented.
+    private let tools = DrawingTool.load().filter {
+        [.pen, .pencil, .marker, .eraser, .fill, .lasso].contains($0.kind)
+    }
 
     init(
         width: Int,
@@ -69,174 +63,68 @@ struct DrawingEditorView: View {
             )
     }
 
-    private func controlsHandle(
-        availableHeight: CGFloat
-    ) -> some View {
-        let maximumHeight = max(
-            0,
-            availableHeight - minimumCanvasHeight - 46
-        )
-
-        let minimumHeight = min(
-            minimumControlsHeight,
-            maximumHeight
-        )
-
-        return VStack(spacing: 7) {
-            Capsule()
-                .fill(.secondary.opacity(0.5))
-                .frame(width: 42, height: 5)
-
-            HStack {
-                Text("Werkzeuge")
-                    .font(.caption)
-                    .fontWeight(.medium)
-
-                Spacer()
-
-                Image(systemName: "arrow.up.and.down")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 16)
-        }
-        .frame(height: 46)
-        .frame(maxWidth: .infinity)
-        .background(Color(uiColor: .systemGroupedBackground))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation(.smooth(duration: 0.25)) {
-                controlsHeight = controlsHeight > 150 ? 110 : 300
-            }
-        }
-        .gesture(
-            DragGesture(minimumDistance: 4)
-                .onChanged { value in
-                    let start =
-                        dragStartHeight
-                        ?? controlsHeight
-
-                    if dragStartHeight == nil {
-                        dragStartHeight = controlsHeight
-                    }
-
-                    controlsHeight = min(
-                        max(
-                            start - value.translation.height,
-                            minimumHeight
-                        ),
-                        maximumHeight
-                    )
-                }
-                .onEnded { _ in
-                    dragStartHeight = nil
-
-                    withAnimation(.smooth(duration: 0.2)) {
-                        controlsHeight = max(
-                            minimumHeight,
-                            min(controlsHeight, maximumHeight)
-                        )
-                    }
-                }
-        )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Werkzeugbereich")
-        .accessibilityValue(
-            "\(Int(controlsHeight)) Punkte"
-        )
-        .accessibilityAdjustableAction { direction in
-            switch direction {
-            case .increment:
-                controlsHeight = min(
-                    controlsHeight + 50,
-                    maximumHeight
-                )
-
-            case .decrement:
-                controlsHeight = max(
-                    controlsHeight - 50,
-                    minimumHeight
-                )
-
-            @unknown default:
-                break
-            }
-        }
-    }
-
     var body: some View {
-        GeometryReader { geometry in
-            let totalHeight = geometry.size.height
-
-            let maximumControlsHeight = max(
-                0,
-                totalHeight - minimumCanvasHeight - 46
-            )
-
-            let minimumHeight = min(
-                minimumControlsHeight,
-                maximumControlsHeight
-            )
-
-            let effectiveControlsHeight = min(
-                max(controlsHeight, minimumHeight),
-                maximumControlsHeight
-            )
-
-            VStack(spacing: 0) {
-                canvasWorkspace
-                    .frame(
-                        maxWidth: .infinity,
-                        maxHeight: .infinity
-                    )
-                    .clipped()
-
-                controlsHandle(
-                    availableHeight: totalHeight
+        canvasWorkspace
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                EditorToolBar(
+                    tools: tools,
+                    selectedToolID: $selectedToolID,
+                    selectedColor: $selectedColor,
+                    lineWidth: $lineWidth
                 )
-
-                editorControls
-                    .frame(height: effectiveControlsHeight)
-                    .clipped()
             }
-            .frame(
-                width: geometry.size.width,
-                height: geometry.size.height
-            )
-        }
-        .navigationTitle("Editor")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            editorToolbar
-        }
-        .sheet(isPresented: $showBackgroundPicker) {
-            backgroundSettings
-                .presentationDetents([.medium])
-        }
-        .confirmationDialog(
-            "Gesamte Zeichnung löschen?",
-            isPresented: $showClearConfirmation
-        ) {
-            Button("Alles löschen", role: .destructive) {
-                document.clearCanvas()
+            .sensoryFeedback(.selection, trigger: selectedToolID) { _, _ in
+                hapticFeedback
+            }
+            .toolbar(.hidden, for: .tabBar)
+            .navigationTitle(projectName)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                editorToolbar
+            }
+            .sheet(isPresented: $showCanvasSettings) {
+                CanvasSettingsSheet(
+                    projectName: $projectName,
+                    showGrid: $showCanvasGrid,
+                    showTransparency: $showTransparencyGrid,
+                    backgroundColor: Binding(
+                        get: {
+                            Color(uiColor: document.backgroundColor ?? .white)
+                        },
+                        set: { document.setBackground(UIColor($0)) }
+                    ),
+                    transparent: Binding(
+                        get: { document.backgroundColor == nil },
+                        set: { document.setBackground($0 ? nil : .white) }
+                    )
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+            .confirmationDialog(
+                "Gesamte Zeichnung löschen?",
+                isPresented: $showClearConfirmation
+            ) {
+                Button("Alles löschen", role: .destructive) {
+                    document.clearCanvas()
+                }
+
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("Du kannst diese Aktion anschließend rückgängig machen.")
             }
 
-            Button("Abbrechen", role: .cancel) {}
-        } message: {
-            Text("Du kannst diese Aktion anschließend rückgängig machen.")
-        }
-
-        .task {
-            loadProjectIfNeeded()
-        }
-        .alert(
-            "Speichern fehlgeschlagen",
-            isPresented: $showSaveError
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(saveErrorMessage)
-        }
+            .task {
+                loadProjectIfNeeded()
+            }
+            .alert(
+                "Speichern fehlgeschlagen",
+                isPresented: $showSaveError
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(saveErrorMessage)
+            }
     }
 
     // MARK: - Canvas Workspace
@@ -296,7 +184,14 @@ struct DrawingEditorView: View {
         scale: CGFloat
     ) -> some View {
         ZStack(alignment: .topLeading) {
-            checkerboard
+            if showTransparencyGrid {
+                checkerboard
+            } else {
+                Color.white
+            }
+            if let backgroundColor = document.backgroundColor {
+                Color(uiColor: backgroundColor)
+            }
 
             Image(uiImage: document.image)
                 .resizable()
@@ -325,6 +220,12 @@ struct DrawingEditorView: View {
             )
         }
         .frame(width: width, height: height)
+        .overlay {
+            if showCanvasGrid {
+                CanvasGuideGrid()
+                    .allowsHitTesting(false)
+            }
+        }
         .clipped()
         .overlay {
             Rectangle()
@@ -384,6 +285,7 @@ struct DrawingEditorView: View {
                 Image(systemName: "arrow.uturn.backward")
             }
             .disabled(!document.canUndo)
+            .accessibilityLabel("Rückgängig")
 
             Button {
                 document.redo()
@@ -391,6 +293,7 @@ struct DrawingEditorView: View {
                 Image(systemName: "arrow.uturn.forward")
             }
             .disabled(!document.canRedo)
+            .accessibilityLabel("Wiederholen")
 
             Button {
                 saveProject()
@@ -401,10 +304,10 @@ struct DrawingEditorView: View {
 
             Menu {
                 Button {
-                    showBackgroundPicker = true
+                    showCanvasSettings = true
                 } label: {
                     Label(
-                        "Hintergrund",
+                        "Leinwand & Projekt",
                         systemImage: "square.on.square"
                     )
                 }
@@ -435,232 +338,33 @@ struct DrawingEditorView: View {
         }
     }
 
-    // MARK: - Native Form Controls
-
-    private var editorControls: some View {
-        Form {
-            DisclosureGroup(
-                "Zeichnen",
-                isExpanded: $showDrawingTools
-            ) {
-                toolGrid([
-                    .pen, .pencil, .marker, .eraser,
-                    .fill, .smoothPen, .animePen,
-                    .curve, .calligraphy,
-                ])
-            }
-
-            DisclosureGroup(
-                "Pinsel",
-                isExpanded: $showBrushTools
-            ) {
-                toolGrid([
-                    .airbrush, .watercolor,
-                    .oilBrush, .pixelPen,
-                ])
-            }
-
-            DisclosureGroup(
-                "Fantasy & Effekte",
-                isExpanded: $showFantasyTools
-            ) {
-                toolGrid([
-                    .glow, .stars, .lightning,
-                ])
-            }
-
-            DisclosureGroup(
-                "Farbverläufe",
-                isExpanded: $showGradientTools
-            ) {
-                toolGrid([
-                    .gradientLinear,
-                    .gradientRadial,
-                    .gradientAngular,
-                    .gradientFill,
-                ])
-            }
-
-            DisclosureGroup(
-                "Sonstiges",
-                isExpanded: $showOtherTools
-            ) {
-                toolGrid([
-                    .lasso, .eyedropper, .clear,
-                ])
-            }
-
-            DisclosureGroup(
-                "Farbe & Strichstärke",
-                isExpanded: $showColorControls
-            ) {
-                ColorPicker(
-                    "Zeichenfarbe",
-                    selection: $selectedColor
-                )
-
-                HStack(spacing: 12) {
-                    Image(systemName: "line.diagonal")
-
-                    Slider(
-                        value: $lineWidth,
-                        in: 1...60,
-                        step: 1
-                    )
-
-                    Text("\(Int(lineWidth))")
-                        .font(.caption.monospacedDigit())
-                        .frame(width: 28)
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)
-        .background(
-            Color(uiColor: .systemGroupedBackground)
-        )
-    }
-
-    private func toolGrid(
-        _ kinds: [DrawingToolKind]
-    ) -> some View {
-        let filteredTools = tools.filter {
-            kinds.contains($0.kind)
-        }
-
-        return LazyVGrid(
-            columns: [
-                GridItem(
-                    .adaptive(minimum: 48, maximum: 70),
-                    spacing: 6
-                )
-            ],
-            spacing: 8
-        ) {
-            ForEach(filteredTools) { tool in
-                compactToolButton(tool)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-
-    // MARK: - Tool Button
-
-    private func compactToolButton(
-        _ tool: DrawingTool
-    ) -> some View {
-        let isSelected = selectedToolID == tool.id
-
-        return Button {
-            if tool.kind == .clear {
-                showClearConfirmation = true
-            } else {
-                selectedToolID = tool.id
-                lineWidth = Double(tool.width)
-            }
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: tool.symbol)
-                    .font(.system(size: 18))
-                    .frame(height: 24)
-
-                Text(tool.name)
-                    .font(.system(size: 9))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-            }
-            .foregroundStyle(
-                isSelected
-                    ? Color.accentColor
-                    : Color.primary
-            )
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .background {
-                RoundedRectangle(cornerRadius: 9)
-                    .fill(
-                        isSelected
-                            ? Color.accentColor.opacity(0.12)
-                            : Color(uiColor: .tertiarySystemGroupedBackground)
-                    )
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 9)
-                    .strokeBorder(
-                        isSelected
-                            ? Color.accentColor.opacity(0.5)
-                            : Color.clear,
-                        lineWidth: 1
-                    )
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(tool.name)
-        .accessibilityAddTraits(
-            isSelected ? .isSelected : []
-        )
-    }
-
-    // MARK: - Background Settings
-
-    private var backgroundSettings: some View {
-        NavigationStack {
-            Form {
-                Section("Hintergrundfarbe") {
-                    Button("Weiß") {
-                        applyBackground(.white)
-                    }
-
-                    Button("Schwarz") {
-                        applyBackground(.black)
-                    }
-
-                    Button("Aktuelle Farbe") {
-                        applyBackground(
-                            UIColor(selectedColor)
-                        )
-                    }
-                }
-            }
-            .navigationTitle("Hintergrund")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") {
-                        showBackgroundPicker = false
-                    }
-                }
-            }
-        }
-    }
-
-    private func applyBackground(_ color: UIColor) {
-        document.setBackground(color)
-        showBackgroundPicker = false
-    }
-
     // MARK: - Save Project
 
     private func saveProject() {
         guard let imageData = document.exportImageData() else {
-            saveErrorMessage = "Das Bild konnte nicht gespeichert werden."
+            saveErrorMessage = String(localized: "Das Bild konnte nicht gespeichert werden.", locale: locale)
             showSaveError = true
             return
         }
 
+        let trimmedName = projectName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let savedName = trimmedName.isEmpty
+            ? String(localized: "Neue Zeichnung", locale: locale)
+            : trimmedName
         let drawingData = document.exportDrawingData()
         let thumbnailData = document.exportThumbnailData()
 
         do {
             if let project {
-                project.name = projectName
+                project.name = savedName
+                project.backgroundColorData = document.backgroundColorData()
                 project.imageData = imageData
                 project.drawingData = drawingData
                 project.thumbnailData = thumbnailData
                 project.updatedAt = .now
             } else {
                 let newProject = DrawingProject(
-                    name: projectName,
+                    name: savedName,
                     width: Int(document.size.width),
                     height: Int(document.size.height),
                     imageData: imageData,
@@ -668,11 +372,13 @@ struct DrawingEditorView: View {
                     thumbnailData: thumbnailData
                 )
 
+                newProject.backgroundColorData = document.backgroundColorData()
                 modelContext.insert(newProject)
                 project = newProject
             }
 
             try modelContext.save()
+            projectName = savedName
 
         } catch {
             saveErrorMessage = error.localizedDescription
@@ -686,7 +392,10 @@ struct DrawingEditorView: View {
         guard !didLoadProject else { return }
         didLoadProject = true
 
-        guard let initialProject else { return }
+        guard let initialProject else {
+            projectName = String(localized: "Neue Zeichnung", locale: locale)
+            return
+        }
 
         project = initialProject
         projectName = initialProject.name
@@ -702,5 +411,6 @@ struct DrawingEditorView: View {
             width: 200,
             height: 300
         )
+        .modelContainer(for: DrawingProject.self, inMemory: true)
     }
 }

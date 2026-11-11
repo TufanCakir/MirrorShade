@@ -14,10 +14,12 @@ final class DrawingDocument: ObservableObject {
     struct Snapshot {
         let image: UIImage
         let drawing: PKDrawing
+        let backgroundColor: UIColor?
     }
 
     @Published var image: UIImage
     @Published var drawing = PKDrawing()
+    @Published private(set) var backgroundColor: UIColor?
 
     @Published private(set) var canUndo = false
     @Published private(set) var canRedo = false
@@ -38,6 +40,7 @@ final class DrawingDocument: ObservableObject {
 
         image = Self.blank(size: size)
         drawing = PKDrawing()
+        backgroundColor = nil
     }
 
     // MARK: - Persistence
@@ -51,6 +54,22 @@ final class DrawingDocument: ObservableObject {
             data: project.drawingData
         ) {
             drawing = restoredDrawing
+        }
+
+        backgroundColor = project.backgroundColorData.flatMap { data in
+            guard
+                let components = try? JSONDecoder().decode(
+                    [Double].self,
+                    from: data
+                ),
+                components.count == 4
+            else { return nil }
+            return UIColor(
+                red: components[0],
+                green: components[1],
+                blue: components[2],
+                alpha: components[3]
+            )
         }
 
         undoStack.removeAll()
@@ -112,7 +131,11 @@ final class DrawingDocument: ObservableObject {
     }
 
     private func snapshot() -> Snapshot {
-        Snapshot(image: image, drawing: drawing)
+        Snapshot(
+            image: image,
+            drawing: drawing,
+            backgroundColor: backgroundColor
+        )
     }
 
     func checkpoint() {
@@ -143,6 +166,7 @@ final class DrawingDocument: ObservableObject {
     private func restore(_ snapshot: Snapshot) {
         image = snapshot.image
         drawing = snapshot.drawing
+        backgroundColor = snapshot.backgroundColor
         updateHistory()
     }
 
@@ -151,7 +175,7 @@ final class DrawingDocument: ObservableObject {
         canRedo = !redoStack.isEmpty
     }
 
-    func flattenedImage() -> UIImage {
+    func flattenedImage(includeBackground: Bool = true) -> UIImage {
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
         format.opaque = false
@@ -161,7 +185,11 @@ final class DrawingDocument: ObservableObject {
         return UIGraphicsImageRenderer(
             size: size,
             format: format
-        ).image { _ in
+        ).image { context in
+            if includeBackground, let backgroundColor {
+                backgroundColor.setFill()
+                context.fill(bounds)
+            }
             image.draw(in: bounds)
 
             let strokes = drawing.image(
@@ -173,7 +201,7 @@ final class DrawingDocument: ObservableObject {
     }
 
     func fill(at point: CGPoint, color: UIColor) {
-        let merged = flattenedImage()
+        let merged = flattenedImage(includeBackground: false)
 
         guard
             let filled = FloodFill.apply(
@@ -189,24 +217,29 @@ final class DrawingDocument: ObservableObject {
     }
 
     func setBackground(_ color: UIColor?) {
+        guard backgroundColor != color else { return }
         checkpoint()
+        backgroundColor = color
+    }
 
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = false
-
-        let bounds = CGRect(origin: .zero, size: size)
-
-        image = UIGraphicsImageRenderer(
-            size: size,
-            format: format
-        ).image { context in
-            if let color {
-                color.setFill()
-                context.fill(bounds)
-            }
-
-            image.draw(in: bounds)
+    func backgroundColorData() -> Data? {
+        guard let backgroundColor else { return nil }
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard
+            backgroundColor.getRed(
+                &red,
+                green: &green,
+                blue: &blue,
+                alpha: &alpha
+            )
+        else {
+            return nil
         }
+        return try? JSONEncoder().encode([
+            Double(red), Double(green), Double(blue), Double(alpha),
+        ])
     }
 }

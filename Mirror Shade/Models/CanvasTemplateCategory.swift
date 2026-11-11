@@ -18,8 +18,16 @@ enum CanvasTemplateCategory: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String {
-        rawValue
+    var title: LocalizedStringResource {
+        switch self {
+        case .standard: "Standard"
+        case .appDesign: "App Design"
+        case .appStore: "App Store"
+        case .gameArt: "Game Art"
+        case .animation: "Animation"
+        case .illustration: "Illustration"
+        case .socialMedia: "Social Media"
+        }
     }
 
     var symbol: String {

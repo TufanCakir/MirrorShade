@@ -30,6 +30,9 @@ final class DrawingProject {
     @Attribute(.externalStorage)
     var thumbnailData: Data?
 
+    // Optional for compatibility with projects saved before backgrounds were separate.
+    var backgroundColorData: Data? = nil
+
     init(
         name: String,
         width: Int,

@@ -166,7 +166,7 @@ struct CanvasCreationView: View {
                     .foregroundStyle(.primary)
 
                 Text(
-                    selectedTemplate?.name ?? "Eigene Größe"
+                    selectedTemplate?.localizedName ?? "Eigene Größe"
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -260,8 +260,10 @@ struct CanvasCreationView: View {
     // MARK: - Computed Values
 
     private var pixelCountText: String {
-        let count = max(width, 0) * max(height, 0)
-        return count.formatted()
+        let (count, overflow) = max(width, 0).multipliedReportingOverflow(
+            by: max(height, 0)
+        )
+        return overflow ? "–" : count.formatted()
     }
 
     private var aspectRatioText: String {
@@ -317,10 +319,7 @@ struct CanvasTemplatePicker: View {
     @Binding var selectedID: String
     let onSelect: (CanvasTemplate) -> Void
 
-    @State private var expandedCategories: Set<CanvasTemplateCategory> = [
-        .standard,
-        .gameArt,
-    ]
+    @State private var selectedCategory: CanvasTemplateCategory = .standard
 
     private var categories: [CanvasTemplateCategory] {
         CanvasTemplateCategory.allCases
@@ -342,54 +341,27 @@ struct CanvasTemplatePicker: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            ForEach(categories) { category in
-                categorySection(category)
-
-                if category != categories.last {
-                    Divider()
+        VStack(spacing: 12) {
+            Picker("Kategorie", selection: $selectedCategory) {
+                ForEach(categories) { category in
+                    Label(category.title, systemImage: category.symbol)
+                        .tag(category)
                 }
             }
-        }
-    }
+            .pickerStyle(.menu)
 
-    // MARK: - Category
-
-    private func categorySection(
-        _ category: CanvasTemplateCategory
-    ) -> some View {
-        let categoryTemplates = templates.filter {
-            $0.category == category
-        }
-
-        return DisclosureGroup(
-            isExpanded: expansionBinding(for: category)
-        ) {
-            LazyVGrid(
-                columns: columns,
-                spacing: 10
-            ) {
-                ForEach(categoryTemplates) { template in
+            LazyVGrid(columns: columns, spacing: 10) {
+                ForEach(templates.filter { $0.category == selectedCategory }) {
+                    template in
                     templateButton(template)
                 }
             }
-            .padding(.vertical, 10)
-        } label: {
-            HStack(spacing: 10) {
-                Label(
-                    category.title,
-                    systemImage: category.symbol
-                )
-                .font(.subheadline.weight(.medium))
-
-                Spacer()
-
-                Text("\(categoryTemplates.count)")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
+        }
+        .onAppear {
+            if let selected = templates.first(where: { $0.id == selectedID }) {
+                selectedCategory = selected.category
             }
         }
-        .padding(.vertical, 6)
     }
 
     // MARK: - Template Button
@@ -406,7 +378,7 @@ struct CanvasTemplatePicker: View {
                 templateShape(template)
                     .frame(height: 34)
 
-                Text(template.name)
+                Text(template.localizedName)
                     .font(.caption.weight(.medium))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -449,9 +421,8 @@ struct CanvasTemplatePicker: View {
         }
         .buttonStyle(.plain)
         .disabled(!template.isValid)
-        .accessibilityLabel(
-            "\(template.name), \(template.dimensionText)"
-        )
+        .accessibilityLabel(Text(template.localizedName))
+        .accessibilityValue(template.dimensionText)
         .accessibilityAddTraits(
             isSelected ? .isSelected : []
         )
@@ -499,24 +470,6 @@ struct CanvasTemplatePicker: View {
             )
     }
 
-    // MARK: - Expansion
-
-    private func expansionBinding(
-        for category: CanvasTemplateCategory
-    ) -> Binding<Bool> {
-        Binding(
-            get: {
-                expandedCategories.contains(category)
-            },
-            set: { expanded in
-                if expanded {
-                    expandedCategories.insert(category)
-                } else {
-                    expandedCategories.remove(category)
-                }
-            }
-        )
-    }
 }
 
 #Preview {

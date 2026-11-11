@@ -22,6 +22,8 @@ struct PencilCanvasView: UIViewRepresentable {
     func makeUIView(context: Context) -> PKCanvasView {
         let canvas = PKCanvasView()
 
+        // Keep artwork colors stable when the surrounding interface changes appearance.
+        canvas.overrideUserInterfaceStyle = .light
         canvas.backgroundColor = .clear
         canvas.isOpaque = false
         canvas.drawingPolicy = .anyInput
