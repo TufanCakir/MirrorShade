@@ -1,0 +1,226 @@
+[
+    {
+        "id": "app_icon",
+        "name": "App Icon",
+        "category": "App Design",
+        "width": 1024,
+        "height": 1024
+    },
+    {
+        "id": "square",
+        "name": "Quadratisch",
+        "category": "Standard",
+        "width": 2048,
+        "height": 2048
+    },
+    {
+        "id": "portrait",
+        "name": "Hochformat 9:16",
+        "category": "Standard",
+        "width": 1080,
+        "height": 1920
+    },
+    {
+        "id": "landscape",
+        "name": "Querformat 16:9",
+        "category": "Standard",
+        "width": 1920,
+        "height": 1080
+    },
+    {
+        "id": "poster",
+        "name": "Poster",
+        "category": "Illustration",
+        "width": 2048,
+        "height": 3072
+    },
+    {
+        "id": "anime_portrait",
+        "name": "Anime Porträt",
+        "category": "Illustration",
+        "width": 1024,
+        "height": 1536
+    },
+    {
+        "id": "fantasy_art",
+        "name": "Fantasy Illustration",
+        "category": "Illustration",
+        "width": 2048,
+        "height": 3072
+    },
+    {
+        "id": "wallpaper_phone",
+        "name": "Smartphone Wallpaper",
+        "category": "Illustration",
+        "width": 1440,
+        "height": 2560
+    },
+    {
+        "id": "sprite_16",
+        "name": "Sprite 16 px",
+        "category": "Game Art",
+        "width": 16,
+        "height": 16
+    },
+    {
+        "id": "sprite_32",
+        "name": "Sprite 32 px",
+        "category": "Game Art",
+        "width": 32,
+        "height": 32
+    },
+    {
+        "id": "game_sprite",
+        "name": "Sprite 64 px",
+        "category": "Game Art",
+        "width": 64,
+        "height": 64
+    },
+    {
+        "id": "sprite_128",
+        "name": "Sprite 128 px",
+        "category": "Game Art",
+        "width": 128,
+        "height": 128
+    },
+    {
+        "id": "tilemap_small",
+        "name": "Tilemap Klein",
+        "category": "Game Art",
+        "width": 512,
+        "height": 512
+    },
+    {
+        "id": "tilemap_medium",
+        "name": "Tilemap Mittel",
+        "category": "Game Art",
+        "width": 1024,
+        "height": 1024
+    },
+    {
+        "id": "tilemap_large",
+        "name": "Tilemap Groß",
+        "category": "Game Art",
+        "width": 2048,
+        "height": 2048
+    },
+    {
+        "id": "tileset_16",
+        "name": "Tileset 16 px",
+        "category": "Game Art",
+        "width": 256,
+        "height": 256
+    },
+    {
+        "id": "tileset_32",
+        "name": "Tileset 32 px",
+        "category": "Game Art",
+        "width": 512,
+        "height": 512
+    },
+    {
+        "id": "tileset_64",
+        "name": "Tileset 64 px",
+        "category": "Game Art",
+        "width": 1024,
+        "height": 1024
+    },
+    {
+        "id": "spritesheet_4",
+        "name": "Spritesheet 4 Frames",
+        "category": "Animation",
+        "width": 256,
+        "height": 64
+    },
+    {
+        "id": "spritesheet_8",
+        "name": "Spritesheet 8 Frames",
+        "category": "Animation",
+        "width": 512,
+        "height": 64
+    },
+    {
+        "id": "spritesheet_16",
+        "name": "Spritesheet 16 Frames",
+        "category": "Animation",
+        "width": 256,
+        "height": 256
+    },
+    {
+        "id": "spritesheet_64",
+        "name": "Spritesheet 64 Frames",
+        "category": "Animation",
+        "width": 512,
+        "height": 512
+    },
+    {
+        "id": "iphone_portrait",
+        "name": "iPhone Screenshot Hochformat",
+        "category": "App Store",
+        "width": 1320,
+        "height": 2868
+    },
+    {
+        "id": "iphone_landscape",
+        "name": "iPhone Screenshot Querformat",
+        "category": "App Store",
+        "width": 2868,
+        "height": 1320
+    },
+    {
+        "id": "ipad_portrait",
+        "name": "iPad Screenshot Hochformat",
+        "category": "App Store",
+        "width": 2064,
+        "height": 2752
+    },
+    {
+        "id": "ipad_landscape",
+        "name": "iPad Screenshot Querformat",
+        "category": "App Store",
+        "width": 2752,
+        "height": 2064
+    },
+    {
+        "id": "app_event",
+        "name": "In-App Event",
+        "category": "App Store",
+        "width": 1920,
+        "height": 1080
+    },
+    {
+        "id": "instagram_square",
+        "name": "Social Square",
+        "category": "Social Media",
+        "width": 1080,
+        "height": 1080
+    },
+    {
+        "id": "instagram_portrait",
+        "name": "Social Portrait 4:5",
+        "category": "Social Media",
+        "width": 1080,
+        "height": 1350
+    },
+    {
+        "id": "story",
+        "name": "Story 9:16",
+        "category": "Social Media",
+        "width": 1080,
+        "height": 1920
+    },
+    {
+        "id": "youtube_thumbnail",
+        "name": "YouTube Thumbnail",
+        "category": "Social Media",
+        "width": 1280,
+        "height": 720
+    },
+    {
+        "id": "banner",
+        "name": "Banner 16:9",
+        "category": "Social Media",
+        "width": 1920,
+        "height": 1080
+    }
+]

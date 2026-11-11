@@ -1,0 +1,163 @@
+[
+    {
+        "id": "pen",
+        "name": "Stift",
+        "symbol": "pencil.tip",
+        "kind": "pen",
+        "width": 4
+    },
+    {
+        "id": "pencil",
+        "name": "Bleistift",
+        "symbol": "pencil",
+        "kind": "pencil",
+        "width": 3
+    },
+    {
+        "id": "marker",
+        "name": "Marker",
+        "symbol": "highlighter",
+        "kind": "marker",
+        "width": 14
+    },
+    {
+        "id": "eraser",
+        "name": "Radierer",
+        "symbol": "eraser",
+        "kind": "eraser",
+        "width": 20
+    },
+    {
+        "id": "fill",
+        "name": "Farbeimer",
+        "symbol": "paintbrush.pointed.fill",
+        "kind": "fill",
+        "width": 1
+    },
+    {
+        "id": "smooth_pen",
+        "name": "Smooth Pen",
+        "symbol": "scribble.variable",
+        "kind": "smoothPen",
+        "width": 4
+    },
+    {
+        "id": "anime_pen",
+        "name": "Anime G-Pen",
+        "symbol": "pencil.line",
+        "kind": "animePen",
+        "width": 5
+    },
+    {
+        "id": "curve",
+        "name": "Kurven",
+        "symbol": "point.topleft.down.curvedto.point.bottomright.up",
+        "kind": "curve",
+        "width": 4
+    },
+    {
+        "id": "calligraphy",
+        "name": "Kalligrafie",
+        "symbol": "pencil.tip.crop.circle",
+        "kind": "calligraphy",
+        "width": 8
+    },
+    {
+        "id": "airbrush",
+        "name": "Airbrush",
+        "symbol": "circle.dotted",
+        "kind": "airbrush",
+        "width": 35
+    },
+    {
+        "id": "watercolor",
+        "name": "Aquarell",
+        "symbol": "drop.fill",
+        "kind": "watercolor",
+        "width": 24
+    },
+    {
+        "id": "oil_brush",
+        "name": "Ölpinsel",
+        "symbol": "paintbrush.fill",
+        "kind": "oilBrush",
+        "width": 18
+    },
+    {
+        "id": "pixel_pen",
+        "name": "Pixel Pen",
+        "symbol": "square.grid.3x3.fill",
+        "kind": "pixelPen",
+        "width": 1
+    },
+    {
+        "id": "glow",
+        "name": "Glow",
+        "symbol": "sparkles",
+        "kind": "glow",
+        "width": 15
+    },
+    {
+        "id": "stars",
+        "name": "Sterne",
+        "symbol": "star.fill",
+        "kind": "stars",
+        "width": 20
+    },
+    {
+        "id": "lightning",
+        "name": "Blitze",
+        "symbol": "bolt.fill",
+        "kind": "lightning",
+        "width": 8
+    },
+    {
+        "id": "gradient_linear",
+        "name": "Linearer Verlauf",
+        "symbol": "rectangle.lefthalf.filled",
+        "kind": "gradientLinear",
+        "width": 1
+    },
+    {
+        "id": "gradient_radial",
+        "name": "Radialer Verlauf",
+        "symbol": "circle.lefthalf.filled",
+        "kind": "gradientRadial",
+        "width": 1
+    },
+    {
+        "id": "gradient_angular",
+        "name": "Winkelverlauf",
+        "symbol": "circle.hexagongrid",
+        "kind": "gradientAngular",
+        "width": 1
+    },
+    {
+        "id": "gradient_fill",
+        "name": "Verlauf-Farbeimer",
+        "symbol": "drop.halffull",
+        "kind": "gradientFill",
+        "width": 1
+    },
+    {
+        "id": "lasso",
+        "name": "Lasso",
+        "symbol": "lasso",
+        "kind": "lasso",
+        "width": 1
+    },
+    {
+        "id": "eyedropper",
+        "name": "Pipette",
+        "symbol": "eyedropper",
+        "kind": "eyedropper",
+        "width": 1
+    },
+    {
+        "id": "clear",
+        "name": "Alles löschen",
+        "symbol": "trash",
+        "kind": "clear",
+        "width": 1
+    }
+]
